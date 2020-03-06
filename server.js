@@ -11,8 +11,9 @@ var PORT = process.env.PORT || 3000;
 // Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static("public"));
 
-var storeNotes = [];
+
 
 // Routes
 app.get("/", (req, res) => {
@@ -23,34 +24,62 @@ app.get("/notes", function (req, res) {
     res.sendFile(path.join(__dirname, "./public/notes.html"));
 });
 
-// app.get("*", function (req, res) {
-//     res.sendFile(path.join(__dirname, "./public/index.html"));
-// });
 
 
 // API ROUTES
-app.get("/api/notes", (req, res) => {
-    return res.json(storeNotes);
-    // var jsonNoteWritten = fs.writeFile("./db/db.json", JSON.stringify(xxx), function (err) {
-    //     if (err) throw err;
-    //     console.log("the note has been written to db.json")
-    // });
-});
 
-// POST REQUEST TO STORE USER'S NOTES
+// POST REQUEST TO SAVE USER'S NOTES
 app.post("/api/notes", function (req, res) {
-    // var jsonRead = fs.readFile(JSON.parse(req.body), "utf8", function (err) {
 
-    //     if (err) throw err;
-    //     console.log("grabed info from db.json")
-    // });
-
-    storeNotes.push(req.body);
     console.log(`req.body`);
     console.log(req.body);
     res.json(req.body);
+    fs.readFile("./db/db.json", "utf8", function (err, file) {
+
+        if (err) throw err;
+        console.log("grabed info from db.json")
+        console.log(file)
+        const newFile = JSON.parse(file);
+        newFile.push(req.body);
+        fs.writeFile("./db/db.json", JSON.stringify(newFile), function (err) {
+            if (err) throw err;
+            console.log("the note has been written to db.json")
+
+        });
+
+    });
+
+
+});
+// GET REQUEST TO GET ALL NOTES FROM DB
+app.get("/api/notes", (req, res) => {
+    // let jsonRead = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+    fs.readFile("./db/db.json", "utf8", function (err, file) {
+
+        if (err) throw err;
+        console.log("grabed info from db.json")
+        console.log(file)
+        res.json(JSON.parse(file));
+
+    });
+
+
 });
 
+
+app.delete("/api/notes/:id", function (req, res) {
+
+    const { params } = req;
+    const { id } = params;
+    console.log(params, id);
+    var newStoreNotes = storeNotes.filter((item) => {
+        item.id !== id;
+
+
+    });
+    console.log(newStoreNotes);
+    res.json(newStoreNotes);
+});
 
 // Starts the server to begin listening
 app.listen(PORT, () => {

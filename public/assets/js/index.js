@@ -54,7 +54,8 @@ var renderActiveNote = function () {
 var handleNoteSave = function () {
   var newNote = {
     title: $noteTitle.val(),
-    text: $noteText.val()
+    text: $noteText.val(),
+    // id: lastId++
   };
 
   saveNote(newNote).then(function (data) {
@@ -71,7 +72,7 @@ var handleNoteDelete = function (event) {
   var note = $(this)
     .parent(".list-group-item")
     .data();
-
+  console.log(note)
   if (activeNote.id === note.id) {
     activeNote = {};
   }
@@ -114,11 +115,17 @@ var renderNoteList = function (notes) {
     var note = notes[i];
 
     var $li = $("<li class='list-group-item'>").data(note);
+
+    console.log("note id ")
+    console.log(notes)
     var $span = $("<span>").text(note.title);
+    console.log("note title")
+    console.log(note.title)
     var $delBtn = $(
       "<i class='fas fa-trash-alt float-right text-danger delete-note'>"
     );
-
+    $delBtn.attr({ "data-id": i });
+    console.log({ i, note, n: notes[i] });
     $li.append($span, $delBtn);
     noteListItems.push($li);
   }
@@ -143,4 +150,3 @@ $noteText.on("keyup", handleRenderSaveBtn);
 // Gets and renders the initial list of notes
 getAndRenderNotes();
 
-module.exports = getAndRenderNotes;
