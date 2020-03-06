@@ -1,6 +1,9 @@
 // Dependencies
 const express = require("express");
 const fs = require("fs");
+const util = require('util');
+fs.readFile = util.promisify(fs.readFile);
+fs.writeFile = util.promisify(fs.writeFile);
 var path = require("path");
 
 
@@ -29,67 +32,61 @@ app.get("/notes", function (req, res) {
 // API ROUTES
 
 // POST REQUEST TO SAVE USER'S NOTES
-app.post("/api/notes", function (req, res) {
+app.post("/api/notes", async function (req, res) {
 
     console.log(`req.body`);
     console.log(req.body);
 
-    fs.readFile("./db/db.json", "utf8", function (err, file) {
+    let file = await fs.readFile("./db/db.json", "utf8")
 
-        if (err) throw err;
-        console.log("grabed info from db.json")
-        console.log(file)
-        const newFile = JSON.parse(file);
-        const lastId = newFile[newFile.length - 1].id
-        req.body.id = lastId + 1 || 1
-        newFile.push(req.body);
-        fs.writeFile("./db/db.json", JSON.stringify(newFile), function (err) {
-            if (err) throw err;
+    console.log("grabed info from db.json")
+    console.log(file)
+    const newFile = JSON.parse(file);
+    const lastId = newFile[newFile.length - 1].id
+    req.body.id = lastId + 1 || 1
+    newFile.push(req.body);
+    fs.writeFile("./db/db.json", JSON.stringify(newFile))
+        .then(function () {
+
             console.log("the note has been written to db.json")
 
             res.json(req.body);
-        });
+        })
+        .catch(err => console.log(err))
 
-    });
+
 
 
 });
 // GET REQUEST TO GET ALL NOTES FROM DB
-app.get("/api/notes", (req, res) => {
-    // let jsonRead = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
-    fs.readFile("./db/db.json", "utf8", function (err, file) {
+app.get("/api/notes", async (req, res) => {
 
-        if (err) throw err;
-        console.log("grabed info from db.json")
-        console.log(file)
-        res.json(JSON.parse(file));
-
-    });
+    let file = await fs.readFile("./db/db.json", "utf8")
+    console.log(file)
+    res.json(JSON.parse(file));
 
 
 });
 
 
-app.delete("/api/notes/:id", function (req, res) {
+app.delete("/api/notes/:id", async function (req, res) {
 
     const { params } = req;
     let { id } = params;
     id = JSON.parse(id)
     console.log(params, id);
-    fs.readFile("./db/db.json", "utf8", function (err, file) {
-        console.log('File ------------')
-        console.log(file)
-        var newStoreNotes = JSON.parse(file).filter((item) => item.id !== id);
+    let file = await fs.readFile("./db/db.json", "utf8")
 
-        console.log(newStoreNotes)
-        fs.writeFile("./db/db.json", JSON.stringify(newStoreNotes), function (err) {
-            if (err) throw err;
-            console.log("the note has been written to db.json")
+    console.log('File ------------')
+    console.log(file)
+    var newStoreNotes = JSON.parse(file).filter((item) => item.id !== id);
+
+    console.log(newStoreNotes)
+    fs.writeFile("./db/db.json", JSON.stringify(newStoreNotes))
+        .then(() => {
             res.json(newStoreNotes);
-        });
-
-    });
-
+        })
+    console.log("the note has been written to db.json")
 
 
 });
