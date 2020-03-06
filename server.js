@@ -33,18 +33,21 @@ app.post("/api/notes", function (req, res) {
 
     console.log(`req.body`);
     console.log(req.body);
-    res.json(req.body);
+
     fs.readFile("./db/db.json", "utf8", function (err, file) {
 
         if (err) throw err;
         console.log("grabed info from db.json")
         console.log(file)
         const newFile = JSON.parse(file);
+        const lastId = newFile[newFile.length - 1].id
+        req.body.id = lastId + 1 || 1
         newFile.push(req.body);
         fs.writeFile("./db/db.json", JSON.stringify(newFile), function (err) {
             if (err) throw err;
             console.log("the note has been written to db.json")
 
+            res.json(req.body);
         });
 
     });
@@ -70,15 +73,25 @@ app.get("/api/notes", (req, res) => {
 app.delete("/api/notes/:id", function (req, res) {
 
     const { params } = req;
-    const { id } = params;
+    let { id } = params;
+    id = JSON.parse(id)
     console.log(params, id);
-    var newStoreNotes = storeNotes.filter((item) => {
-        item.id !== id;
+    fs.readFile("./db/db.json", "utf8", function (err, file) {
+        console.log('File ------------')
+        console.log(file)
+        var newStoreNotes = JSON.parse(file).filter((item) => item.id !== id);
 
+        console.log(newStoreNotes)
+        fs.writeFile("./db/db.json", JSON.stringify(newStoreNotes), function (err) {
+            if (err) throw err;
+            console.log("the note has been written to db.json")
+            res.json(newStoreNotes);
+        });
 
     });
-    console.log(newStoreNotes);
-    res.json(newStoreNotes);
+
+
+
 });
 
 // Starts the server to begin listening
